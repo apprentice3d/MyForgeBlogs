@@ -1,0 +1,7 @@
+{
+  "lambda": {
+    "role": "token_fetcher-executor",
+    "name": "token_fetcher",
+    "region": "us-east-1"
+  }
+}
