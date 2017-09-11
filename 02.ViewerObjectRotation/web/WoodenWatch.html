@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.min.css" type="text/css">
 
     <!-- Developer CSS -->
-    <link rel="stylesheet" href="./css/my_style.css" type="text/css">
+    <link rel="stylesheet" href="./assets/css/my_style.css" type="text/css">
 </head>
 
 <body>
@@ -21,6 +21,10 @@
     <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.min.js"></script>
 
     <!-- Developer JS -->
+    <script src="./assets/js/auxiliary.js"></script>
+
+
+
     <script>
         var viewerApp;
         let viewer = null;
@@ -40,7 +44,7 @@
             }
 
         };
-        var documentId = 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Y2xvY2tfcmVwby9Xb29kZW5DbG9jay5mM2Q';
+        var documentId = 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Y2xvY2tfcmVwby8wMVdvb2RlbkNsb2NrLmYzZA';
         Autodesk.Viewing.Initializer(options, function onInitialized() {
             viewerApp = new Autodesk.Viewing.ViewingApplication('MyViewerDiv');
             viewerApp.registerViewer(viewerApp.k3D, Autodesk.Viewing.Viewer3D);
@@ -84,6 +88,11 @@
         function setupMyModel() {
             /*============================ MY ATTEMPTS =======================*/
 
+            let camera = viewer.getCamera();
+            if(!camera.isPerspective) {
+                camera.toPerspective();
+            }
+
             tree = viewer.model.getData().instanceTree;
 
 
@@ -94,58 +103,58 @@
 
 
 
-            /* ====================== SECONDS ================= */
-            let seconds_pivot = new THREE.Mesh();
-            let pin_position = getFragmentWorldMatrixByNodeId(pin_Id).matrix[0].getPosition().clone();
-            seconds_pivot.position.x = pin_position.x;
-            seconds_pivot.position.y = pin_position.y;
-            seconds_pivot.position.z = pin_position.z;
-
-            let seconds_helper = new THREE.Mesh();
-            let secondsArm_position = getFragmentWorldMatrixByNodeId(secondsArm_Id).matrix[0].getPosition().clone();
-            seconds_helper.position.x = -secondsArm_position.x + Math.abs(secondsArm_position.x - pin_position.x);
-            seconds_helper.position.y = secondsArm_position.y + Math.abs(secondsArm_position.y + pin_position.y);
-            seconds_helper.position.z = secondsArm_position.z + Math.abs(secondsArm_position.z + pin_position.z);
-
-            seconds_pivot.add(seconds_helper);
-            viewer.impl.scene.add(seconds_pivot);
-            assignTransformations(seconds_helper, secondsArm_Id);
-
-
-
-            /* ====================== MINUTES ================= */
-            let minute_pivot = new THREE.Mesh();
-            minute_pivot.position.x = pin_position.x;
-            minute_pivot.position.y = pin_position.y;
-            minute_pivot.position.z = pin_position.z;
-
-            let minute_helper = new THREE.Mesh();
-            let minuteArm_position = getFragmentWorldMatrixByNodeId(secondsArm_Id).matrix[0].getPosition().clone();
-            minute_helper.position.x = -minuteArm_position.x + Math.abs(minuteArm_position.x - pin_position.x);
-            minute_helper.position.y = minuteArm_position.y + Math.abs(minuteArm_position.y + pin_position.y);
-            minute_helper.position.z = minuteArm_position.z + Math.abs(minuteArm_position.z + pin_position.z);
-
-            minute_pivot.add(minute_helper);
-            viewer.impl.scene.add(minute_pivot);
-            assignTransformations(minute_helper, minuteArm_Id);
-
-
-
-            /* ====================== HOURS ================= */
-            let hour_pivot = new THREE.Mesh();
-            hour_pivot.position.x = pin_position.x;
-            hour_pivot.position.y = pin_position.y;
-            hour_pivot.position.z = pin_position.z;
-
-            let hour_helper = new THREE.Mesh();
-            let hourArm_position = getFragmentWorldMatrixByNodeId(secondsArm_Id).matrix[0].getPosition().clone();
-            hour_helper.position.x = -hourArm_position.x + Math.abs(hourArm_position.x - pin_position.x);
-            hour_helper.position.y = hourArm_position.y + Math.abs(hourArm_position.y + pin_position.y);
-            hour_helper.position.z = hourArm_position.z + Math.abs(hourArm_position.z + pin_position.z);
-
-            hour_pivot.add(hour_helper);
-            viewer.impl.scene.add(hour_pivot);
-            assignTransformations(hour_helper, hourArm_Id);
+             /* ====================== SECONDS ================= */
+             let seconds_pivot = new THREE.Mesh();
+             let pin_position = getFragmentWorldMatrixByNodeId(pin_Id).matrix[0].getPosition().clone();
+             seconds_pivot.position.x = pin_position.x;
+             seconds_pivot.position.y = pin_position.y;
+             seconds_pivot.position.z = pin_position.z;
+ 
+             let seconds_helper = new THREE.Mesh();
+             let secondsArm_position = getFragmentWorldMatrixByNodeId(secondsArm_Id).matrix[0].getPosition().clone();
+             seconds_helper.position.x = -secondsArm_position.x + Math.abs(secondsArm_position.x - pin_position.x);
+             seconds_helper.position.y = -secondsArm_position.y + Math.abs(secondsArm_position.y - pin_position.y);
+             seconds_helper.position.z = secondsArm_position.z + Math.abs(secondsArm_position.z + pin_position.z);
+ 
+             seconds_pivot.add(seconds_helper);
+             viewer.impl.scene.add(seconds_pivot);
+             assignTransformations(seconds_helper, secondsArm_Id);
+ 
+ 
+ 
+             /* ====================== MINUTES ================= */
+             let minute_pivot = new THREE.Mesh();
+             minute_pivot.position.x = pin_position.x;
+             minute_pivot.position.y = pin_position.y;
+             minute_pivot.position.z = pin_position.z;
+ 
+             let minute_helper = new THREE.Mesh();
+             let minuteArm_position = getFragmentWorldMatrixByNodeId(secondsArm_Id).matrix[0].getPosition().clone();
+             minute_helper.position.x = -minuteArm_position.x + Math.abs(minuteArm_position.x - pin_position.x);
+             minute_helper.position.y = -minuteArm_position.y + Math.abs(minuteArm_position.y - pin_position.y);
+             minute_helper.position.z = minuteArm_position.z + Math.abs(minuteArm_position.z + pin_position.z);
+ 
+             minute_pivot.add(minute_helper);
+             viewer.impl.scene.add(minute_pivot);
+             assignTransformations(minute_helper, minuteArm_Id);
+ 
+ 
+ 
+             /* ====================== HOURS ================= */
+             let hour_pivot = new THREE.Mesh();
+             hour_pivot.position.x = pin_position.x;
+             hour_pivot.position.y = pin_position.y;
+             hour_pivot.position.z = pin_position.z;
+ 
+             let hour_helper = new THREE.Mesh();
+             let hourArm_position = getFragmentWorldMatrixByNodeId(secondsArm_Id).matrix[0].getPosition().clone();
+             hour_helper.position.x = -hourArm_position.x + Math.abs(hourArm_position.x - pin_position.x);
+             hour_helper.position.y = -hourArm_position.y + Math.abs(hourArm_position.y - pin_position.y);
+             hour_helper.position.z = hourArm_position.z + Math.abs(hourArm_position.z + pin_position.z);
+ 
+             hour_pivot.add(hour_helper);
+             viewer.impl.scene.add(hour_pivot);
+             assignTransformations(hour_helper, hourArm_Id);
 
 
 
@@ -165,61 +174,6 @@
             }, 1000);
 
         }
-
-
-
-
-        /*============================ AUXILIARY =======================*/
-
-        function assignTransformations(refererence_dummy, nodeId) {
-            refererence_dummy.parent.updateMatrixWorld();
-            var position = refererence_dummy.position.clone();
-            var rotation = new THREE.Quaternion();
-            var scale = new THREE.Vector3();
-            position = refererence_dummy.position.clone();
-            refererence_dummy.matrixWorld.decompose(position, rotation, scale);
-
-            tree.enumNodeFragments(nodeId, function (frag) {
-                var fragProxy = viewer.impl.getFragmentProxy(viewer.model, frag);
-                fragProxy.getAnimTransform();
-                fragProxy.position = position;
-                fragProxy.quaternion = rotation;
-                fragProxy.updateAnimTransform();
-            });
-
-        }
-
-
-        function findNodeIdbyName(name) {
-            let nodeList = Object.values(tree.nodeAccess.dbIdToIndex);
-            for (let i = 0, len = nodeList.length; i < len; ++i) {
-                if (tree.getNodeName(nodeList[i]) === name) {
-                    return nodeList[i];
-                }
-            }
-            return null;
-        }
-
-
-        function getFragmentWorldMatrixByNodeId(nodeId) {
-            let result = {
-                fragId: [],
-                matrix: [],
-            }
-            tree.enumNodeFragments(nodeId, function (frag) {
-
-                let fragProxy = viewer.impl.getFragmentProxy(viewer.model, frag);
-                let matrix = new THREE.Matrix4();
-
-                fragProxy.getWorldMatrix(matrix);
-
-                result.fragId.push(frag);
-                result.matrix.push(matrix);
-            });
-            return result;
-        }
-
-
 
             /*============================ END OF MY ATTEMPTS =======================*/
     </script>

@@ -10,27 +10,27 @@
     <!-- The Viewer JS -->
     <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/three.min.js"></script>
     <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.min.js"></script>
-    <script src="./js/dat.gui.js"></script>
+    <script src="./assets/js/dat.gui.js"></script>
 
     <link rel="stylesheet" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.min.css" type="text/css">
-    
-        <!-- Developer CSS -->
-        <link rel="stylesheet" href="./css/my_style.css" type="text/css">
-        <link rel="stylesheet" href="./css/light_dat.css" type="text/css">
-        <style>
-            #MyControls {
-                position: absolute;
-                top: 5px;
-                left: 5px;
-                z-index: 1;
-                /* padding: 1em; */
-                /* font-size: 1em; */
-                /* cursor: pointer; */
-                /* box-shadow: 5px 5px 5px #888888; */
-                /* border: 1px solid gray; */
-                /* border-radius: 5px; */
-            }
-        </style>
+
+    <!-- Developer CSS -->
+    <link rel="stylesheet" href="./assets/css/my_style.css" type="text/css">
+    <link rel="stylesheet" href="./assets/css/light_dat.css" type="text/css">
+    <style>
+        #MyControls {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            z-index: 1;
+            /* padding: 1em; */
+            /* font-size: 1em; */
+            /* cursor: pointer; */
+            /* box-shadow: 5px 5px 5px #888888; */
+            /* border: 1px solid gray; */
+            /* border-radius: 5px; */
+        }
+    </style>
 
 </head>
 
@@ -39,8 +39,8 @@
     <!-- The Viewer will be instantiated here -->
     <div id="MyViewerDiv"></div>
     <div id="MyControls" class="adsk control">
-    <p style="text-align: center;">Giro Controls</p>
-    <!-- <input type="range">Main Axis</input> -->
+        <p style="text-align: center;">Giro Controls</p>
+        <!-- <input type="range">Main Axis</input> -->
     </div>
 
     <script>
@@ -49,17 +49,18 @@
         }
 
 
-        window.onload = function () {
-            let giro_control = new MyControls();
-            let gui = new dat.GUI({ autoPlace: false });
-            document.getElementById("MyControls").append(gui.domElement);
-            gui.add(giro_control, 'mainAngle', 0, 360);
-        }
+        // window.onload = function () {
+        //     let giro_control = new MyControls();
+        //     let gui = new dat.GUI({ autoPlace: false });
+        //     document.getElementById("MyControls").append(gui.domElement);
+        //     gui.add(giro_control, 'mainAngle', 0, 360);
+        // }
     </script>
 
 
 
     <!-- Developer JS -->
+    <script src="./assets/js/auxiliary.js"></script>
     <script>
         var viewerApp;
         let viewer = null;
@@ -79,7 +80,7 @@
             }
 
         };
-        var documentId = 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Y2xvY2tfcmVwby9HaXJvV2F0Y2guZjNk';
+        var documentId = 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Y2xvY2tfcmVwby8wMUdpcm9XYXRjaC5mM2Q';
         Autodesk.Viewing.Initializer(options, function onInitialized() {
             viewerApp = new Autodesk.Viewing.ViewingApplication('MyViewerDiv');
             viewerApp.registerViewer(viewerApp.k3D, Autodesk.Viewing.Viewer3D);
@@ -115,7 +116,7 @@
         }
 
         function onItemLoadFail(errorCode) {
-            console.error('onItemLoadFail() - errorCode:' + errorCode);
+            console.error('onItemLoadFail() - errorCode:' + errorCode); 
         }
 
 
@@ -133,71 +134,113 @@
 
 
 
+            class Jointer {
+                constructor(NodeId) {
+                    this.parent = null;
+                    this.childrens = new Array();
+                    this.helper = new THREE.Mesh();
+                    this.node_id = NodeId;
+                    let fragment_position = getFragmentWorldMatrixByNodeId(this.node_id).matrix[0].getPosition().clone();
+                    this.helper.position.x = fragment_position.x;
+                    this.helper.position.y = fragment_position.y;
+                    this.helper.position.z = fragment_position.z;
+                }
+
+                getPosition() {
+                    return new THREE.Vector3(this.helper.position.x, this.helper.position.y, this.helper.position.z);
+                }
+
+                getRotation() {
+                    return this.helper.rotation.clone();
+                }
+
+                setRotationX(valueX) {
+                    this.helper.rotation.x = valueX;
+                }
+
+                getReference() {
+                    return this.helper;
+                }
+
+                setParent(parentJointer) {
+
+                    this.parent = parentJointer;
+                    this.helper.position.x = -this.helper.position.x + Math.abs(this.helper.position.x - this.parent.getPosition().x);
+                    this.helper.position.y = -this.helper.position.y + Math.abs(this.helper.position.y - this.parent.getPosition().y);
+                    this.helper.position.z = this.helper.position.z + Math.abs(this.helper.position.z + this.parent.getPosition().z);
+                    this.parent.getReference().add(this.helper);
+                }
+
+                addToScene() {
+                    if (viewer) {
+                        viewer.impl.scene.add(this.helper);
+                    }
+                }
+
+                addChild(childJointer) {
+                    this.childrens.push(childJointer);
+                    this.childrens[this.childrens.length - 1].setParent(this);
+                }
+
+                updateTransformation() {
+                    if (this.parent) {
+                        this.parent.helper.updateMatrixWorld();
+                        var position = new THREE.Vector3();
+                        var rotation = new THREE.Quaternion();
+                        var scale = new THREE.Vector3();
+                        this.helper.matrixWorld.decompose(position, rotation, scale);
+                        tree.enumNodeFragments(this.node_id, function (frag) {
+                            var fragProxy = viewer.impl.getFragmentProxy(viewer.model, frag);
+                            fragProxy.getAnimTransform();
+                            fragProxy.position = position;
+                            fragProxy.quaternion = rotation;
+                            fragProxy.updateAnimTransform();
+                        })
+
+                    }
+
+                    this.childrens.forEach(function (element) {
+                        element.updateTransformation();
+                    }, this);
+                }
+            }
+
+
             /* ====================== SECONDS ================= */
-            let seconds_pivot = new THREE.Mesh();
-            let pin_position = getFragmentWorldMatrixByNodeId(pin_Id).matrix[0].getPosition().clone();
-            seconds_pivot.position.x = pin_position.x;
-            seconds_pivot.position.y = pin_position.y;
-            seconds_pivot.position.z = pin_position.z;
-
-            let seconds_helper = new THREE.Mesh();
-            let secondsArm_position = getFragmentWorldMatrixByNodeId(secondsArm_Id).matrix[0].getPosition().clone();
-            seconds_helper.position.x = -secondsArm_position.x + Math.abs(secondsArm_position.x - pin_position.x);
-            seconds_helper.position.y = -secondsArm_position.y + Math.abs(secondsArm_position.y - pin_position.y);
-            seconds_helper.position.z = secondsArm_position.z + Math.abs(secondsArm_position.z + pin_position.z);
-
-            seconds_pivot.add(seconds_helper);
-            viewer.impl.scene.add(seconds_pivot);
-            assignTransformations(seconds_helper, secondsArm_Id);
-
+            let seconds_pivot = new Jointer(pin_Id);
+            seconds_pivot.addToScene();
+            let seconds_helper = new Jointer(secondsArm_Id);
+            seconds_pivot.addChild(seconds_helper);
 
 
             /* ====================== MINUTES ================= */
-            let minute_pivot = new THREE.Mesh();
-            minute_pivot.position.x = pin_position.x;
-            minute_pivot.position.y = pin_position.y;
-            minute_pivot.position.z = pin_position.z;
-
-            let minute_helper = new THREE.Mesh();
-            let minuteArm_position = getFragmentWorldMatrixByNodeId(secondsArm_Id).matrix[0].getPosition().clone();
-            minute_helper.position.x = -minuteArm_position.x + Math.abs(minuteArm_position.x - pin_position.x);
-            minute_helper.position.y = -minuteArm_position.y + Math.abs(minuteArm_position.y - pin_position.y);
-            minute_helper.position.z = minuteArm_position.z + Math.abs(minuteArm_position.z + pin_position.z);
-
-            minute_pivot.add(minute_helper);
-            viewer.impl.scene.add(minute_pivot);
-            assignTransformations(minute_helper, minuteArm_Id);
+            let minute_pivot = new Jointer(pin_Id);
+            minute_pivot.addToScene();
+            let minute_helper = new Jointer(minuteArm_Id);
+            minute_pivot.addChild(minute_helper);
 
 
-
-            /* ====================== HOURS ================= */
-            let hour_pivot = new THREE.Mesh();
-            hour_pivot.position.x = pin_position.x;
-            hour_pivot.position.y = pin_position.y;
-            hour_pivot.position.z = pin_position.z;
-
-            let hour_helper = new THREE.Mesh();
-            let hourArm_position = getFragmentWorldMatrixByNodeId(secondsArm_Id).matrix[0].getPosition().clone();
-            hour_helper.position.x = -hourArm_position.x + Math.abs(hourArm_position.x - pin_position.x);
-            hour_helper.position.y = -hourArm_position.y + Math.abs(hourArm_position.y - pin_position.y);
-            hour_helper.position.z = hourArm_position.z + Math.abs(hourArm_position.z + pin_position.z);
-
-            hour_pivot.add(hour_helper);
-            viewer.impl.scene.add(hour_pivot);
-            assignTransformations(hour_helper, hourArm_Id);
+            // /* ====================== HOURS ================= */
+            let hour_pivot = new Jointer(pin_Id);
+            hour_pivot.addToScene();
+            let hour_helper = new Jointer(hourArm_Id);
+            hour_pivot.addChild(hour_helper);
 
 
 
             setInterval(function () {
                 var timing = new Date();
 
-                seconds_pivot.rotation.x = -1 * timing.getSeconds() * 2 * Math.PI / 60;
-                minute_pivot.rotation.x = -1 * timing.getMinutes() * 2 * Math.PI / 60;
-                hour_pivot.rotation.x = -1 * timing.getHours() * 2 * Math.PI / 12 + minute_pivot.rotation.x / 12;
+                // hour_pivot.rotation.x = -1 * timing.getHours() * 2 * Math.PI / 12 + minute_pivot.rotation.x / 12;
 
-                assignTransformations(seconds_helper, secondsArm_Id);
-                assignTransformations(minute_helper, minuteArm_Id);
-                assignTransformations(hour_helper, hourArm_Id);
+                seconds_pivot.setRotationX(-1 * timing.getSeconds() * 2 * Math.PI / 60);
+                seconds_pivot.updateTransformation();
+
+                minute_pivot.setRotationX(-1 * timing.getMinutes() * 2 * Math.PI / 60);
+                minute_pivot.updateTransformation();
+
+                hour_pivot.setRotationX(-1 * timing.getHours() * 2 * Math.PI / 12 + minute_pivot.getRotation().x / 12);
+                hour_pivot.updateTransformation();
 
                 viewer.impl.sceneUpdated();
 
@@ -205,55 +248,6 @@
 
         }
 
-        /*============================ AUXILIARY =======================*/
-
-        function assignTransformations(refererence_dummy, nodeId) {
-            refererence_dummy.parent.updateMatrixWorld();
-            var position = refererence_dummy.position.clone();
-            var rotation = new THREE.Quaternion();
-            var scale = new THREE.Vector3();
-            position = refererence_dummy.position.clone();
-            refererence_dummy.matrixWorld.decompose(position, rotation, scale);
-
-            tree.enumNodeFragments(nodeId, function (frag) {
-                var fragProxy = viewer.impl.getFragmentProxy(viewer.model, frag);
-                fragProxy.getAnimTransform();
-                fragProxy.position = position;
-                fragProxy.quaternion = rotation;
-                fragProxy.updateAnimTransform();
-            });
-
-        }
-
-
-        function findNodeIdbyName(name) {
-            let nodeList = Object.values(tree.nodeAccess.dbIdToIndex);
-            for (let i = 0, len = nodeList.length; i < len; ++i) {
-                if (tree.getNodeName(nodeList[i]) === name) {
-                    return nodeList[i];
-                }
-            }
-            return null;
-        }
-
-
-        function getFragmentWorldMatrixByNodeId(nodeId) {
-            let result = {
-                fragId: [],
-                matrix: [],
-            }
-            tree.enumNodeFragments(nodeId, function (frag) {
-
-                let fragProxy = viewer.impl.getFragmentProxy(viewer.model, frag);
-                let matrix = new THREE.Matrix4();
-
-                fragProxy.getWorldMatrix(matrix);
-
-                result.fragId.push(frag);
-                result.matrix.push(matrix);
-            });
-            return result;
-        }
 
             /*============================ END OF MY ATTEMPTS =======================*/
     </script>
