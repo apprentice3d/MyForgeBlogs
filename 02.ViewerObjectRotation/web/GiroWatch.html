@@ -116,93 +116,15 @@
             let minuteArm_Id = findNodeIdbyName('MinuteArm');
             let hourArm_Id = findNodeIdbyName('HourArm');
 
-
             let center_Id = findNodeIdbyName('CENTER');
             let mainFrame_Id = findNodeIdbyName('MainFrame');
             let secondFrame_Id = findNodeIdbyName('SecondFrame');
             let thirdFrame_Id = findNodeIdbyName('ThirdFrame');
             let clockBody_Id = findNodeIdbyName('ClockBody');
 
-
-
-
-
-
-
-
-            /* ====================== FRAMES ================= */
-            // let mainFrame_pivot = new Jointer(center_Id);
-            // mainFrame_pivot.addToScene();
-            // let mainFrame_helper = new Jointer(mainFrame_Id);
-            // mainFrame_pivot.addChild(mainFrame_helper);
-
-            // let secondFrame_helper = new Jointer(secondFrame_Id);
-            // mainFrame_pivot.addChild(secondFrame_helper);
-
-
-            // let secondFrame_pivot = new Pivoter(center_Id);
-            // mainFrame_pivot.addChild(secondFrame_pivot);
-
-
-            // let thirdFrame_Helper = new Jointer(thirdFrame_Id);
-            // secondFrame_pivot.addChild(thirdFrame_Helper);
-
-
-
-
-            // let mainFrame_pivot = new Pivoter(center_Id);
-            // mainFrame_pivot.addToScene();
-            // let mainFrame_helper = new Jointer(mainFrame_Id);
-            // mainFrame_pivot.addChild(mainFrame_helper);
-
-
-
-            // let secondFrame_pivot = new Pivoter(center_Id);
-            // secondFrame_pivot.addToScene();
-            // let secondFrame_helper = new Jointer(secondFrame_Id);
-            // secondFrame_pivot.addChild(secondFrame_helper);
-
-
-            // let thirdFrame_pivot = new Pivoter(center_Id);
-            // thirdFrame_pivot.addToScene();
-            // let thirdFrame_helper = new Jointer(thirdFrame_Id);
-            // thirdFrame_pivot.addChild(thirdFrame_helper);
-
-
-
-
-            // let thirdFrame_Helper = new Jointer(thirdFrame_Id);
-            // secondFrame_pivot.addChild(thirdFrame_Helper);
-
-
-            /*============================ SECOND/MINUTE/HOUR ROTATION =======================*/
-
-
-            function updateTime() {
-                var timing = new Date();
-
-                seconds_pivot.rotation.x = -1 * timing.getSeconds() * 2 * Math.PI / 60;
-                minute_pivot.rotation.x = -1 * timing.getMinutes() * 2 * Math.PI / 60;
-                hour_pivot.rotation.x = -1 * timing.getHours() * 2 * Math.PI / 12 + minute_pivot.rotation.x / 12;
-
-                assignTransformations(seconds_helper, secondsArm_Id);
-                assignTransformations(minute_helper, minuteArm_Id);
-                assignTransformations(hour_helper, hourArm_Id);
-
-                viewer.impl.sceneUpdated();
-            }
-
-
-
-            setInterval(updateTime, 1000);
-
-
-
-
-
-
-
-
+            let frontRim_Id = findNodeIdbyName('FrontRim');
+            let hourDisk_Id = findNodeIdbyName('HourDisk');
+            let glass_Id = findNodeIdbyName('Glass');
 
 
 
@@ -224,7 +146,6 @@
             dummy_mainFrame.position.y = element_position.y - Math.abs(element_position.y + center_position.y);
             dummy_mainFrame.position.z = element_position.z + Math.abs(element_position.z + center_position.z);
             dummy_center.add(dummy_mainFrame);
-            // assignTransformations(dummy_mainFrame, mainFrame_Id);
 
             let dummy_secondFrame = new THREE.Mesh();
             let second_element_position = getFragmentWorldMatrixByNodeId(secondFrame_Id).matrix[0].getPosition().clone();
@@ -232,9 +153,6 @@
             dummy_secondFrame.position.y = second_element_position.y - Math.abs(second_element_position.y + center_position.y);
             dummy_secondFrame.position.z = second_element_position.z + Math.abs(second_element_position.z + center_position.z);
             dummy_center.add(dummy_secondFrame);
-
-            // assignTransformations(dummy_secondFrame, secondFrame_Id);
-
 
             // using a proxy, to be able to compensate the nonafected axis
             let dummy_thirdFrame_proxy = new THREE.Mesh();
@@ -249,35 +167,12 @@
             dummy_thirdFrame.position.z = third_element_position.z + Math.abs(third_element_position.z + dummy_secondFrame.position.z);
             dummy_thirdFrame_proxy.add(dummy_thirdFrame);
 
-            // assignTransformations(dummy_thirdFrame, thirdFrame_Id);
 
             let dummy_clock = new THREE.Mesh();
             let clockBody_position = getFragmentWorldMatrixByNodeId(clockBody_Id).matrix[0].getPosition().clone();
             dummy_clock.position.y = -10;
             dummy_thirdFrame_proxy.add(dummy_clock);
 
-            // assignTransformations(dummy_clock, clockBody_Id);
-
-            let frontRim_Id = findNodeIdbyName('FrontRim');
-            let hourDisk_Id = findNodeIdbyName('HourDisk');
-            let glass_Id = findNodeIdbyName('Glass');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            // assignTransformations(dummy_clock, frontRim_Id);
-            // assignTransformations(dummy_clock, hourDisk_Id);
-            // assignTransformations(dummy_clock, glass_Id);
 
 
             /* ====================== SECONDS ================= */
@@ -292,9 +187,7 @@
             seconds_helper.position.z = secondsArm_position.z + Math.abs(secondsArm_position.z + pin_position.z);
 
             seconds_pivot.add(seconds_helper);
-            //   viewer.impl.scene.add(seconds_pivot);
             dummy_thirdFrame_proxy.add(seconds_pivot);
-            // assignTransformations(seconds_helper, secondsArm_Id);
 
 
 
@@ -309,9 +202,7 @@
             minute_helper.position.z = minuteArm_position.z + Math.abs(minuteArm_position.z + pin_position.z);
 
             minute_pivot.add(minute_helper);
-            // viewer.impl.scene.add(minute_pivot);
             dummy_thirdFrame_proxy.add(minute_pivot);
-            // assignTransformations(minute_helper, minuteArm_Id);
 
 
 
@@ -326,15 +217,25 @@
             hour_helper.position.z = hourArm_position.z + Math.abs(hourArm_position.z + pin_position.z);
 
             hour_pivot.add(hour_helper);
-            // viewer.impl.scene.add(hour_pivot);
             dummy_thirdFrame_proxy.add(hour_pivot);
-            // assignTransformations(hour_helper, hourArm_Id);
 
-            // assignTransformations(dummy_clock, pin_Id);
-            // assignTransformations(dummy_clock, secondsArm_Id);
-            // assignTransformations(dummy_clock, minuteArm_Id);
-            // assignTransformations(dummy_clock, hourArm_Id);
 
+            /*============================ SECOND/MINUTE/HOUR ROTATION =======================*/
+            function updateTime() {
+                var timing = new Date();
+
+                seconds_pivot.rotation.x = -1 * timing.getSeconds() * 2 * Math.PI / 60;
+                minute_pivot.rotation.x = -1 * timing.getMinutes() * 2 * Math.PI / 60;
+                hour_pivot.rotation.x = -1 * timing.getHours() * 2 * Math.PI / 12 + minute_pivot.rotation.x / 12;
+
+                assignTransformations(seconds_helper, secondsArm_Id);
+                assignTransformations(minute_helper, minuteArm_Id);
+                assignTransformations(hour_helper, hourArm_Id);
+
+                viewer.impl.sceneUpdated();
+            }
+
+            setInterval(updateTime, 1000);
 
 
 
@@ -426,9 +327,9 @@
 
 
             ThirdAxis.onChange(function (value) {
-                if (value < 5 && value > -5) {
-                    third_ring_rotation = 0;
-                }
+                // if (value < 5 && value > -5) {
+                //     third_ring_rotation = 0;
+                // }
                 dummy_thirdFrame_proxy.rotation.z = third_ring_rotation + (2 * Math.PI * value / 360);
                 assignTransformations(dummy_thirdFrame, thirdFrame_Id);
                 assignTransformations(dummy_clock, clockBody_Id);
