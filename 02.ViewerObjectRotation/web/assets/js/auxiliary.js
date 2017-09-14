@@ -4,11 +4,12 @@
 
 function assignTransformations(refererence_dummy, nodeId) {
     refererence_dummy.parent.updateMatrixWorld();
-    var position = refererence_dummy.position.clone();
+    var position = new THREE.Vector3();
     var rotation = new THREE.Quaternion();
     var scale = new THREE.Vector3();
-    position = refererence_dummy.position.clone();
     refererence_dummy.matrixWorld.decompose(position, rotation, scale);
+
+    // console.log("decomposed matrix into position = " + JSON.stringify(position));
 
     tree.enumNodeFragments(nodeId, function (frag) {
         var fragProxy = viewer.impl.getFragmentProxy(viewer.model, frag);

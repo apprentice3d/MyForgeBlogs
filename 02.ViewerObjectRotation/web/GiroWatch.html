@@ -143,15 +143,15 @@
             let dummy_mainFrame = new THREE.Mesh();
             let element_position = getFragmentWorldMatrixByNodeId(mainFrame_Id).matrix[0].getPosition().clone();
             dummy_mainFrame.position.x = -element_position.x + Math.abs(element_position.x - center_position.x);
-            dummy_mainFrame.position.y = element_position.y - Math.abs(element_position.y + center_position.y);
-            dummy_mainFrame.position.z = element_position.z + Math.abs(element_position.z + center_position.z);
+            dummy_mainFrame.position.y = -element_position.y + Math.abs(element_position.y - center_position.y);
+            dummy_mainFrame.position.z = -element_position.z + Math.abs(element_position.z - center_position.z);
             dummy_center.add(dummy_mainFrame);
 
             let dummy_secondFrame = new THREE.Mesh();
             let second_element_position = getFragmentWorldMatrixByNodeId(secondFrame_Id).matrix[0].getPosition().clone();
             dummy_secondFrame.position.x = -second_element_position.x + Math.abs(second_element_position.x - center_position.x);
-            dummy_secondFrame.position.y = second_element_position.y - Math.abs(second_element_position.y + center_position.y);
-            dummy_secondFrame.position.z = second_element_position.z + Math.abs(second_element_position.z + center_position.z);
+            dummy_secondFrame.position.y = -second_element_position.y + Math.abs(second_element_position.y - center_position.y);
+            dummy_secondFrame.position.z = -second_element_position.z + Math.abs(second_element_position.z - center_position.z);
             dummy_center.add(dummy_secondFrame);
 
             // using a proxy, to be able to compensate the nonafected axis
@@ -162,10 +162,13 @@
 
             let dummy_thirdFrame = new THREE.Mesh();
             let third_element_position = getFragmentWorldMatrixByNodeId(thirdFrame_Id).matrix[0].getPosition().clone();
-            dummy_thirdFrame.position.x = -third_element_position.x + Math.abs(third_element_position.x - dummy_secondFrame.position.x);
-            dummy_thirdFrame.position.y = -10;
-            dummy_thirdFrame.position.z = third_element_position.z + Math.abs(third_element_position.z + dummy_secondFrame.position.z);
+            dummy_thirdFrame.position.x = -third_element_position.x + Math.abs(third_element_position.x - dummy_thirdFrame_proxy.position.x);
+            dummy_thirdFrame.position.y = -third_element_position.y + Math.abs(third_element_position.y - dummy_thirdFrame_proxy.position.y);;
+            dummy_thirdFrame.position.z = -third_element_position.z + Math.abs(third_element_position.z - dummy_thirdFrame_proxy.position.z);
             dummy_thirdFrame_proxy.add(dummy_thirdFrame);
+
+            console.log("ThirdFrame element position = " + JSON.stringify(third_element_position));
+            console.log("ThirdFrame element position = " + JSON.stringify(dummy_thirdFrame_proxy.position));
 
 
             let dummy_clock = new THREE.Mesh();
