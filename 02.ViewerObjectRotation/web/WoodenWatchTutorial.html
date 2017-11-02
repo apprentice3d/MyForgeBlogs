@@ -109,16 +109,15 @@
             seconds_pivot.position.x = pin_position.x;
             seconds_pivot.position.y = pin_position.y;
             seconds_pivot.position.z = pin_position.z;
-            seconds_pivot.updateMatrixWorld();
-            viewer.impl.scene.add(seconds_pivot);
-
-
+           
             let seconds_helper = new THREE.Mesh();
             let secondsArm_position = getFragmentWorldMatrixByNodeId(secondsArm_Id).matrix[0].getPosition().clone();
-            seconds_pivot.add(seconds_helper);
             seconds_helper.position.x = - secondsArm_position.x + Math.abs(secondsArm_position.x - seconds_pivot.position.x);
             seconds_helper.position.y = - secondsArm_position.y + Math.abs(secondsArm_position.y - seconds_pivot.position.y);
             seconds_helper.position.z = - secondsArm_position.z + Math.abs(secondsArm_position.z - seconds_pivot.position.z);
+
+            viewer.impl.scene.add(seconds_pivot);
+            seconds_pivot.add(seconds_helper);
 
             // seconds_helper.updateMatrixWorld();
             // console.log("X= " + secondsArm_position.x + " - " + seconds_pivot.position.x + " = " + Math.abs(secondsArm_position.x - seconds_pivot.position.x));

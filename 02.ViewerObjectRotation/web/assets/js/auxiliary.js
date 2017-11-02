@@ -24,8 +24,9 @@ function assignTransformations(refererence_dummy, nodeId) {
 
 function findNodeIdbyName(name) {
     let nodeList = Object.values(tree.nodeAccess.dbIdToIndex);
-    for (let i = 0, len = nodeList.length; i < len; ++i) {
-        if (tree.getNodeName(nodeList[i]) === name) {
+    for (let i = 1, len = nodeList.length; i < len; ++i) {
+        let node_name = tree.getNodeName(nodeList[i]);
+        if (node_name === name) {
             return nodeList[i];
         }
     }

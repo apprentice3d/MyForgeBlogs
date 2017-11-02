@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+
+    <script type="text/javascript">
+         function myWebsocketStart()
+         {
+               var ws = new WebSocket("ws://localhost:3000/websocket");
+
+               ws.onmessage = function (evt)
+               {
+                  var myTextArea = document.getElementById("textarea1");
+                  myTextArea.value = myTextArea.value + "\n" + evt.data
+               };
+
+               ws.onclose = function()
+               {
+                  var myTextArea = document.getElementById("textarea1");
+                  myTextArea.value = myTextArea.value + "\n" + "Connection closed";
+               };
+
+         }
+
+    </script>
+
+</head>
+<body>
+<button onclick="javascript:myWebsocketStart()">Subscribe</button>
+<textarea id="textarea1">MyTextArea</textarea>
+</body>
+</html>

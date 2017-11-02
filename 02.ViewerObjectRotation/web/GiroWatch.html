@@ -9,10 +9,10 @@
 
     <!-- The Viewer JS -->
     <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/three.min.js"></script>
-    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.min.js"></script>
+    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.min.js?v=3.1.2"></script>
     <script src="./assets/js/dat.gui.js"></script>
 
-    <link rel="stylesheet" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.min.css" type="text/css">
+    <link rel="stylesheet" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.css?v=3.1.1" type="text/css">
 
     <!-- Developer CSS -->
     <link rel="stylesheet" href="./assets/css/my_style.css" type="text/css">
@@ -20,27 +20,45 @@
     <style>
         #MyControls {
             position: absolute;
-            top: 5px;
-            left: 5px;
+            /* top: 5px; */
+            /* left: 5px; */
+            right: 15px;
+            bottom: 15px;
             z-index: 1;
             /* padding: 1em; */
             /* font-size: 1em; */
             /* cursor: pointer; */
             /* box-shadow: 5px 5px 5px #888888; */
-            /* border: 1px solid gray; */
-            /* border-radius: 5px; */
+            border: 1px solid #D4D4D4;
+            background-color: white;
+            border-radius: 5px;
+        }
+
+        #autodesk_logo {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 1;
+        }
+        #autodesk_logo img {
+            max-width: 50%;
         }
     </style>
 
 </head>
+
+
 
 <body>
 
     <!-- The Viewer will be instantiated here -->
     <div id="MyViewerDiv"></div>
     <div id="MyControls" class="adsk control">
-        <p style="text-align: center;">Giro Controls</p>
+        <p style="text-align: center; font-weight: bold;">Giro Controls</p>
         <!-- <input type="range">Main Axis</input> -->
+    </div>
+    <div id="autodesk_logo">
+        <img src="./assets/img/forge-logo.png">
     </div>
 
     <!-- Developer JS -->
@@ -64,10 +82,10 @@
             }
 
         };
-        var documentId = 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Y2xvY2tfcmVwby8wMkdpcm9XYXRjaC5mM2Q';
+        var documentId = 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Y2xvY2tfcmVwby8wM0dpcm9XYXRjaC5mM2Q';
         Autodesk.Viewing.Initializer(options, function onInitialized() {
             viewerApp = new Autodesk.Viewing.ViewingApplication('MyViewerDiv');
-            viewerApp.registerViewer(viewerApp.k3D, Autodesk.Viewing.Viewer3D);
+            viewerApp.registerViewer(viewerApp.k3D, Autodesk.Viewing.Private.GuiViewer3D);
             viewerApp.loadDocument(documentId, onDocumentLoadSuccess, onDocumentLoadFailure);
             viewer = viewerApp.getCurrentViewer();
         });
@@ -353,6 +371,59 @@
                 viewer.impl.sceneUpdated(true);
 
             });
+
+
+
+
+
+/***************************** RANDOM AXIS MOVEMENT AS DEMO *******************/
+
+            // let incrementer = 1;
+            // let rotation = 0;
+
+            // let main_axis_rotation = 0;
+            // let second_axis_rotation = 0;
+            // let third_axis_rotation = 0;
+
+            // let main_axis_incrementer = 1;
+            // let second_axis_incrementer = 1;
+            // let third_axis_incrementer = 1;
+
+            // let main_axis_destination = getRandomInt(0, 180);
+            // let second_axis_destination = getRandomInt(0, 180);
+            // let third_axis_destination = getRandomInt(0, 180);
+
+
+
+            // setInterval(function(){
+            //     ThirdAxis.setValue(third_axis_rotation);
+            //     SecondAxis.setValue(second_axis_rotation);
+            //     MainAxis.setValue(main_axis_rotation);
+            //     if (main_axis_rotation > main_axis_destination || main_axis_rotation < (-1 *main_axis_destination)) {
+            //         main_axis_incrementer *= -1;
+            //         main_axis_destination = getRandomInt(0, 180) + 50;
+            //     }
+            //     main_axis_rotation += main_axis_incrementer;
+
+            //     if (second_axis_rotation > second_axis_destination || second_axis_rotation < (-1 *second_axis_destination)) {
+            //         second_axis_incrementer *= -1;
+            //         second_axis_destination = getRandomInt(0, 180) + 50;
+            //     }
+            //     second_axis_rotation += second_axis_incrementer;
+
+            //     if (third_axis_rotation > third_axis_destination || third_axis_rotation < (-1 *third_axis_destination)) {
+            //         third_axis_incrementer *= -1;
+            //         third_axis_destination = getRandomInt(0, 180) + 50;
+            //     }
+            //     third_axis_rotation += third_axis_incrementer;
+
+
+            // }, 100)
+
+
+            // function getRandomInt(min,max) {
+            //     return Math.floor(Math.random() * (max-min + 1 ) + min);
+            // }
 
             /*============================ END OF MY ATTEMPTS =======================*/
 

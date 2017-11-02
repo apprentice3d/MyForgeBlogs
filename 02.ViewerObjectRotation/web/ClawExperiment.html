@@ -1,0 +1,563 @@
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=no" />
+    <meta charset="utf-8">
+
+    <!-- The Viewer CSS -->
+    <link rel="stylesheet" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.css?v=3.1.1" type="text/css">
+
+    <!-- Developer CSS -->
+    <link rel="stylesheet" href="./assets/css/my_style.css" type="text/css">
+
+    <!-- The Viewer JS -->
+    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/three.min.js"></script>
+    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.js?v=3.1.1"></script>
+    <script src="./assets/js/dat.gui.js"></script>
+
+    <!-- Developer JS -->
+    <script src="./assets/js/auxiliary.js"></script>
+    <script src="./assets/js/timeliner.js"></script>
+
+    <style>
+        #MyControls {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            z-index: 1;
+            /* padding: 1em; */
+            /* font-size: 1em; */
+            /* cursor: pointer; */
+            /* box-shadow: 5px 5px 5px #888888; */
+            /* border: 1px solid gray; */
+            /* border-radius: 5px; */
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- The Viewer will be instantiated here -->
+    <div id="MyViewerDiv"></div>
+    <div id="MyControls" class="adsk control">
+        <p style="text-align: center;">Claw Control</p>
+        <!-- <input type="range">Main Axis</input> -->
+    </div>
+
+
+
+
+
+    <script>
+        var viewerApp;
+        let viewer = null;
+        let tree = null;
+        var options = {
+            env: 'AutodeskProduction',
+            getAccessToken: function (onGetAccessToken) {
+                var token_fetcher = 'https://9irt90dm6j.execute-api.us-east-1.amazonaws.com/prod'
+                var xmlHttp = new XMLHttpRequest();
+                xmlHttp.open("GET", token_fetcher, false);
+                xmlHttp.send(null);
+                var data = JSON.parse(xmlHttp.responseText);
+
+                var accessToken = data["access_token"]
+                var expireTimeSeconds = data["expires_in"];
+                onGetAccessToken(accessToken, expireTimeSeconds);
+            }
+
+        };
+        var documentId = 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6ZXhwZXJpbWVudF9yZXBvLzAxQ2xhd2VyLmYzZA';
+        Autodesk.Viewing.Initializer(options, function onInitialized() {
+            viewerApp = new Autodesk.Viewing.ViewingApplication('MyViewerDiv');
+            viewerApp.registerViewer(viewerApp.k3D, Autodesk.Viewing.Private.GuiViewer3D);
+            viewerApp.loadDocument(documentId, onDocumentLoadSuccess, onDocumentLoadFailure);
+            viewer = viewerApp.getCurrentViewer();
+        });
+
+        function onDocumentLoadSuccess(doc) {
+
+            // We could still make use of Document.getSubItemsWithProperties()
+            // However, when using a ViewingApplication, we have access to the **bubble** attribute,
+            // which references the root node of a graph that wraps each object from the Manifest JSON.
+            var viewables = viewerApp.bubble.search({
+                'type': 'geometry'
+            });
+            if (viewables.length === 0) {
+                console.error('Document contains no viewables.');
+                return;
+            }
+
+            // Choose any of the avialble viewables
+            viewerApp.selectItem(viewables[0].data, onItemLoadSuccess, onItemLoadFail);
+
+
+        }
+
+        function onDocumentLoadFailure(viewerErrorCode) {
+            console.error('onDocumentLoadFailure() - errorCode:' + viewerErrorCode);
+        }
+
+        function onItemLoadSuccess(reported_viewer, item) {
+
+            viewer = reported_viewer;
+            viewer.addEventListener(Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, setupMyModel);
+        }
+
+        function onItemLoadFail(errorCode) {
+            console.error('onItemLoadFail() - errorCode:' + errorCode);
+        }
+
+
+
+        function setupMyModel() {
+            /*============================ MY ATTEMPTS =======================*/
+
+            // let camera = viewer.getCamera();
+            // if(!camera.isPerspective) {
+            //     camera.toPerspective();
+            // }
+
+
+            tree = viewer.model.getData().instanceTree;
+
+
+
+            let ID_Left_Bolt_Main = 62;
+            let ID_Left_Bolt_Second = 56;
+            let ID_Left_Claw_Up = 51;
+            let ID_Left_Claw_Down = 50;
+            let ID_Left_Rotator = 48;
+
+            let ID_Left_Bolt_Inner = 60;
+            let ID_Left_Link = 36;
+            let ID_Left_Bolt_Inner_Linker = 54;
+
+
+            let ID_Right_Bolt_Main = 31;
+            let ID_Right_Bolt_Second = 58;
+            let ID_Right_Claw_Up = 45;
+            let ID_Right_Claw_Down = 46;
+            let ID_Right_Rotator = 52;
+
+            let ID_Right_Bolt_Inner = 64;
+            let ID_Right_Link = 34;
+            let ID_Right_Bolt_Inner_Linker = 66;
+
+
+
+
+
+            let Pivot_Left_Bolt_Main = new THREE.Mesh();
+            let Position_Left_Bolt_Main = getFragmentWorldMatrixByNodeId(ID_Left_Bolt_Main).matrix[0].getPosition().clone();
+            Pivot_Left_Bolt_Main.position.x = Position_Left_Bolt_Main.x;
+            Pivot_Left_Bolt_Main.position.y = Position_Left_Bolt_Main.y;
+            Pivot_Left_Bolt_Main.position.z = Position_Left_Bolt_Main.z;
+            viewer.impl.scene.add(Pivot_Left_Bolt_Main);
+
+            let Helper_Left_Rotator = new THREE.Mesh();
+            let Position_Left_Rotator = getFragmentWorldMatrixByNodeId(ID_Left_Rotator).matrix[0].getPosition().clone();
+            Helper_Left_Rotator.position.x = -Position_Left_Rotator.x - Math.abs(Position_Left_Rotator.x -
+                Pivot_Left_Bolt_Main.position.x);
+            Helper_Left_Rotator.position.y = -Position_Left_Rotator.y + Math.abs(Position_Left_Rotator.y -
+                Pivot_Left_Bolt_Main.position.y);
+            Helper_Left_Rotator.position.z = -Position_Left_Rotator.z - Math.abs(Position_Left_Rotator.z -
+                Pivot_Left_Bolt_Main.position.z);
+            Pivot_Left_Bolt_Main.add(Helper_Left_Rotator);
+
+
+            let Pivot_Left_Bolt_Second = new THREE.Mesh();
+            let Position_Left_Bolt_Second = getFragmentWorldMatrixByNodeId(ID_Left_Bolt_Second).matrix[0].getPosition()
+                .clone();
+
+            Pivot_Left_Bolt_Second.position.x = Position_Left_Bolt_Second.x - Pivot_Left_Bolt_Main.position.x;
+            Pivot_Left_Bolt_Second.position.y = Position_Left_Bolt_Second.y - Pivot_Left_Bolt_Main.position.y;
+            Pivot_Left_Bolt_Second.position.z = Position_Left_Bolt_Second.z - Pivot_Left_Bolt_Main.position.z;
+            Pivot_Left_Bolt_Main.add(Pivot_Left_Bolt_Second);
+
+
+            let Helper_Left_Bolt_Second = new THREE.Mesh();
+            Helper_Left_Bolt_Second.position.x = -Position_Left_Bolt_Second.x - Math.abs(Position_Left_Bolt_Second.x -
+                Pivot_Left_Bolt_Main.position.x - Pivot_Left_Bolt_Second.position.x);
+            Helper_Left_Bolt_Second.position.y = -Position_Left_Bolt_Second.y + Math.abs(Position_Left_Bolt_Second.y -
+                Pivot_Left_Bolt_Main.position.y - Pivot_Left_Bolt_Second.position.y);
+            Helper_Left_Bolt_Second.position.z = -Position_Left_Bolt_Second.z - Math.abs(Position_Left_Bolt_Second.z -
+                Pivot_Left_Bolt_Main.position.z - Pivot_Left_Bolt_Second.position.z);
+            Pivot_Left_Bolt_Second.add(Helper_Left_Bolt_Second);
+
+
+            let Helper_Left_Claw_Up = new THREE.Mesh();
+            let Position_Left_Claw_Up = getFragmentWorldMatrixByNodeId(ID_Left_Claw_Up).matrix[0].getPosition().clone();
+            Helper_Left_Claw_Up.position.x = -Position_Left_Claw_Up.x - Math.abs(Position_Left_Claw_Up.x -
+                Pivot_Left_Bolt_Main.position.x - Pivot_Left_Bolt_Second.position.x);
+            Helper_Left_Claw_Up.position.y = -Position_Left_Claw_Up.y - Math.abs(Position_Left_Claw_Up.y -
+                Pivot_Left_Bolt_Main.position.y - Pivot_Left_Bolt_Second.position.y);
+            Helper_Left_Claw_Up.position.z = -Position_Left_Claw_Up.z - Math.abs(Position_Left_Claw_Up.z -
+                Pivot_Left_Bolt_Main.position.z - Pivot_Left_Bolt_Second.position.z);
+            Pivot_Left_Bolt_Second.add(Helper_Left_Claw_Up);
+
+
+            let Helper_Left_Claw_Down = new THREE.Mesh();
+            let Position_Left_Claw_Down = getFragmentWorldMatrixByNodeId(ID_Left_Claw_Down).matrix[0].getPosition().clone();
+            Helper_Left_Claw_Down.position.x = -Position_Left_Claw_Down.x - Math.abs(Position_Left_Claw_Down.x -
+                Pivot_Left_Bolt_Main.position.x - Pivot_Left_Bolt_Second.position.x);
+            Helper_Left_Claw_Down.position.y = -Position_Left_Claw_Down.y + Math.abs(Position_Left_Claw_Down.y -
+                Pivot_Left_Bolt_Main.position.y - Pivot_Left_Bolt_Second.position.y);
+            Helper_Left_Claw_Down.position.z = -Position_Left_Claw_Down.z - Math.abs(Position_Left_Claw_Down.z -
+                Pivot_Left_Bolt_Main.position.z - Pivot_Left_Bolt_Second.position.z);
+            Pivot_Left_Bolt_Second.add(Helper_Left_Claw_Down);
+
+            let Pivot_Left_Bolt_Inner = new THREE.Mesh();
+            let Position_Left_Bolt_Inner = getFragmentWorldMatrixByNodeId(ID_Left_Bolt_Inner).matrix[0].getPosition().clone();
+            Pivot_Left_Bolt_Inner.position.x = Position_Left_Bolt_Inner.x;
+            Pivot_Left_Bolt_Inner.position.y = Position_Left_Bolt_Inner.y;
+            Pivot_Left_Bolt_Inner.position.z = Position_Left_Bolt_Inner.z;
+            viewer.impl.scene.add(Pivot_Left_Bolt_Inner);
+
+            let Helper_Left_Link = new THREE.Mesh();
+            let Position_Left_Link = getFragmentWorldMatrixByNodeId(ID_Left_Link).matrix[0].getPosition().clone();
+            Helper_Left_Link.position.x = -Position_Left_Link.x - Math.abs(Position_Left_Link.x -
+                Pivot_Left_Bolt_Inner.position.x);
+            Helper_Left_Link.position.y = -Position_Left_Link.y + Math.abs(Position_Left_Link.y -
+                Pivot_Left_Bolt_Inner.position.y);
+            Helper_Left_Link.position.z = -Position_Left_Link.z + Math.abs(Position_Left_Link.z -
+                Pivot_Left_Bolt_Inner.position.z);
+            Pivot_Left_Bolt_Inner.add(Helper_Left_Link);
+
+
+            let Helper_Left_Bolt_Inner_Linker = new THREE.Mesh();
+            let Position_Left_Bolt_Inner_Linker = getFragmentWorldMatrixByNodeId(ID_Left_Bolt_Inner_Linker).matrix[0].getPosition()
+                .clone();
+            Helper_Left_Bolt_Inner_Linker.position.x = -Position_Left_Bolt_Inner_Linker.x - Math.abs(
+                Position_Left_Bolt_Inner_Linker.x -
+                Pivot_Left_Bolt_Inner.position.x);
+            Helper_Left_Bolt_Inner_Linker.position.y = -Position_Left_Bolt_Inner_Linker.y + Math.abs(
+                Position_Left_Bolt_Inner_Linker.y -
+                Pivot_Left_Bolt_Inner.position.y);
+            Helper_Left_Bolt_Inner_Linker.position.z = -Position_Left_Bolt_Inner_Linker.z + Math.abs(
+                Position_Left_Bolt_Inner_Linker.z -
+                Pivot_Left_Bolt_Inner.position.z);
+            Pivot_Left_Bolt_Inner.add(Helper_Left_Bolt_Inner_Linker);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            let Pivot_Right_Bolt_Main = new THREE.Mesh();
+            let Position_Right_Bolt_Main = getFragmentWorldMatrixByNodeId(ID_Right_Bolt_Main).matrix[0].getPosition().clone();
+            Pivot_Right_Bolt_Main.position.x = Position_Right_Bolt_Main.x;
+            Pivot_Right_Bolt_Main.position.y = Position_Right_Bolt_Main.y;
+            Pivot_Right_Bolt_Main.position.z = Position_Right_Bolt_Main.z;
+            viewer.impl.scene.add(Pivot_Right_Bolt_Main);
+
+            let Helper_Right_Rotator = new THREE.Mesh();
+            let Position_Right_Rotator = getFragmentWorldMatrixByNodeId(ID_Right_Rotator).matrix[0].getPosition().clone();
+            Helper_Right_Rotator.position.x = -Position_Right_Rotator.x - Math.abs(Position_Right_Rotator.x -
+                Pivot_Right_Bolt_Main.position.x);
+            Helper_Right_Rotator.position.y = -Position_Right_Rotator.y + Math.abs(Position_Right_Rotator.y -
+                Pivot_Right_Bolt_Main.position.y);
+            Helper_Right_Rotator.position.z = -Position_Right_Rotator.z + Math.abs(Position_Right_Rotator.z -
+                Pivot_Right_Bolt_Main.position.z);
+            Pivot_Right_Bolt_Main.add(Helper_Right_Rotator);
+
+
+            let Pivot_Right_Bolt_Second = new THREE.Mesh();
+            let Position_Right_Bolt_Second = getFragmentWorldMatrixByNodeId(ID_Right_Bolt_Second).matrix[0].getPosition()
+                .clone();
+
+            Pivot_Right_Bolt_Second.position.x = Position_Right_Bolt_Second.x - Pivot_Right_Bolt_Main.position.x;
+            Pivot_Right_Bolt_Second.position.y = Position_Right_Bolt_Second.y - Pivot_Right_Bolt_Main.position.y;
+            Pivot_Right_Bolt_Second.position.z = Position_Right_Bolt_Second.z - Pivot_Right_Bolt_Main.position.z;
+            Pivot_Right_Bolt_Main.add(Pivot_Right_Bolt_Second);
+
+
+            let Helper_Right_Bolt_Second = new THREE.Mesh();
+            Helper_Right_Bolt_Second.position.x = -Position_Right_Bolt_Second.x - Math.abs(Position_Right_Bolt_Second.x -
+                Pivot_Right_Bolt_Main.position.x - Pivot_Right_Bolt_Second.position.x);
+            Helper_Right_Bolt_Second.position.y = -Position_Right_Bolt_Second.y + Math.abs(Position_Right_Bolt_Second.y -
+                Pivot_Right_Bolt_Main.position.y - Pivot_Right_Bolt_Second.position.y);
+            Helper_Right_Bolt_Second.position.z = -Position_Right_Bolt_Second.z + Math.abs(Position_Right_Bolt_Second.z -
+                Pivot_Right_Bolt_Main.position.z - Pivot_Right_Bolt_Second.position.z);
+            Pivot_Right_Bolt_Second.add(Helper_Right_Bolt_Second);
+
+
+            let Helper_Right_Claw_Up = new THREE.Mesh();
+            let Position_Right_Claw_Up = getFragmentWorldMatrixByNodeId(ID_Right_Claw_Up).matrix[0].getPosition().clone();
+            Helper_Right_Claw_Up.position.x = -Position_Right_Claw_Up.x - Math.abs(Position_Right_Claw_Up.x -
+                Pivot_Right_Bolt_Main.position.x - Pivot_Right_Bolt_Second.position.x);
+            Helper_Right_Claw_Up.position.y = -Position_Right_Claw_Up.y - Math.abs(Position_Right_Claw_Up.y -
+                Pivot_Right_Bolt_Main.position.y - Pivot_Right_Bolt_Second.position.y);
+            Helper_Right_Claw_Up.position.z = -Position_Right_Claw_Up.z + Math.abs(Position_Right_Claw_Up.z -
+                Pivot_Right_Bolt_Main.position.z - Pivot_Right_Bolt_Second.position.z);
+            Pivot_Right_Bolt_Second.add(Helper_Right_Claw_Up);
+
+
+            let Helper_Right_Claw_Down = new THREE.Mesh();
+            let Position_Right_Claw_Down = getFragmentWorldMatrixByNodeId(ID_Right_Claw_Down).matrix[0].getPosition().clone();
+            Helper_Right_Claw_Down.position.x = -Position_Right_Claw_Down.x - Math.abs(Position_Right_Claw_Down.x -
+                Pivot_Right_Bolt_Main.position.x - Pivot_Right_Bolt_Second.position.x);
+            Helper_Right_Claw_Down.position.y = -Position_Right_Claw_Down.y + Math.abs(Position_Right_Claw_Down.y -
+                Pivot_Right_Bolt_Main.position.y - Pivot_Right_Bolt_Second.position.y);
+            Helper_Right_Claw_Down.position.z = -Position_Right_Claw_Down.z + Math.abs(Position_Right_Claw_Down.z -
+                Pivot_Right_Bolt_Main.position.z - Pivot_Right_Bolt_Second.position.z);
+            Pivot_Right_Bolt_Second.add(Helper_Right_Claw_Down);
+
+            let Pivot_Right_Bolt_Inner = new THREE.Mesh();
+            let Position_Right_Bolt_Inner = getFragmentWorldMatrixByNodeId(ID_Right_Bolt_Inner).matrix[0].getPosition()
+                .clone();
+            Pivot_Right_Bolt_Inner.position.x = Position_Right_Bolt_Inner.x;
+            Pivot_Right_Bolt_Inner.position.y = Position_Right_Bolt_Inner.y;
+            Pivot_Right_Bolt_Inner.position.z = Position_Right_Bolt_Inner.z;
+            viewer.impl.scene.add(Pivot_Right_Bolt_Inner);
+
+            let Helper_Right_Link = new THREE.Mesh();
+            let Position_Right_Link = getFragmentWorldMatrixByNodeId(ID_Right_Link).matrix[0].getPosition().clone();
+            Helper_Right_Link.position.x = -Position_Right_Link.x - Math.abs(Position_Right_Link.x -
+                Pivot_Right_Bolt_Inner.position.x);
+            Helper_Right_Link.position.y = -Position_Right_Link.y + Math.abs(Position_Right_Link.y -
+                Pivot_Right_Bolt_Inner.position.y);
+            Helper_Right_Link.position.z = -Position_Right_Link.z - Math.abs(Position_Right_Link.z -
+                Pivot_Right_Bolt_Inner.position.z);
+            Pivot_Right_Bolt_Inner.add(Helper_Right_Link);
+
+
+            let Helper_Right_Bolt_Inner_Linker = new THREE.Mesh();
+            let Position_Right_Bolt_Inner_Linker = getFragmentWorldMatrixByNodeId(ID_Right_Bolt_Inner_Linker).matrix[0]
+                .getPosition().clone();
+            Helper_Right_Bolt_Inner_Linker.position.x = -Position_Right_Bolt_Inner_Linker.x - Math.abs(
+                Position_Right_Bolt_Inner_Linker.x -
+                Pivot_Right_Bolt_Inner.position.x);
+            Helper_Right_Bolt_Inner_Linker.position.y = -Position_Right_Bolt_Inner_Linker.y + Math.abs(
+                Position_Right_Bolt_Inner_Linker.y -
+                Pivot_Right_Bolt_Inner.position.y);
+            Helper_Right_Bolt_Inner_Linker.position.z = -Position_Right_Bolt_Inner_Linker.z - Math.abs(
+                Position_Right_Bolt_Inner_Linker.z -
+                Pivot_Right_Bolt_Inner.position.z);
+            Pivot_Right_Bolt_Inner.add(Helper_Right_Bolt_Inner_Linker);
+
+
+            assignTransformations(Helper_Right_Rotator, ID_Right_Rotator);
+            assignTransformations(Helper_Right_Bolt_Second, ID_Right_Bolt_Second);
+            assignTransformations(Helper_Right_Claw_Up, ID_Right_Claw_Up);
+            assignTransformations(Helper_Right_Claw_Down, ID_Right_Claw_Down);
+            assignTransformations(Helper_Right_Link, ID_Right_Link);
+            assignTransformations(Helper_Right_Bolt_Inner_Linker, ID_Right_Bolt_Inner_Linker);
+
+            assignTransformations(Helper_Left_Rotator, ID_Left_Rotator);
+            assignTransformations(Helper_Left_Bolt_Second, ID_Left_Bolt_Second);
+            assignTransformations(Helper_Left_Claw_Up, ID_Left_Claw_Up);
+            assignTransformations(Helper_Left_Claw_Down, ID_Left_Claw_Down);
+            assignTransformations(Helper_Left_Link, ID_Left_Link);
+            assignTransformations(Helper_Left_Bolt_Inner_Linker, ID_Left_Bolt_Inner_Linker);
+
+
+            /******************* GUI PART ***************************/
+
+            let gui = new dat.GUI({
+                autoPlace: false
+            });
+            document.getElementById("MyControls").append(gui.domElement);
+
+            let box_control = null;
+
+            let ServoRotation = null;
+            let reset = null;
+
+
+            let GiroController = function () {
+                this.ServoRotation = 0;
+
+                this.reset = function () {
+                    ServoRotation.setValue(0);
+                }
+
+            }
+
+
+            box_control = new GiroController();
+            ServoRotation = gui.add(box_control, 'ServoRotation', 0, 70);
+            reset = gui.add(box_control, 'reset');
+
+
+            ServoRotation.onChange(function (value) {
+
+                // let photon_connection = new XMLHttpRequest();
+                // photon_connection.open("POST",
+                //     'https://api.particle.io/v1/devices/35002d000c47353136383631/Claw_Control', true);
+                // photon_connection.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                // photon_connection.setRequestHeader("Access-Control-Allow-Origin", "http://localhost:8080");
+                // // photon_connection.withCredentials = true;
+                // photon_connection.send("access_token=25e931a58b9a7595036d30b867517c895245e004&&args=" + String(
+                //     value));
+
+
+
+
+                box_control.manual = true;
+                Pivot_Left_Bolt_Main.rotation.y = value * Math.PI / 180;
+                Pivot_Left_Bolt_Second.rotation.y = -value * Math.PI / 180;
+                Pivot_Left_Bolt_Inner.rotation.y = value * Math.PI / 180;
+
+
+                Pivot_Right_Bolt_Main.rotation.y = -value * Math.PI / 180;
+                Pivot_Right_Bolt_Second.rotation.y = value * Math.PI / 180;
+                Pivot_Right_Bolt_Inner.rotation.y = -value * Math.PI / 180;
+
+                assignTransformations(Helper_Left_Rotator, ID_Left_Rotator);
+                assignTransformations(Helper_Left_Bolt_Second, ID_Left_Bolt_Second);
+                assignTransformations(Helper_Left_Claw_Up, ID_Left_Claw_Up);
+                assignTransformations(Helper_Left_Claw_Down, ID_Left_Claw_Down);
+                assignTransformations(Helper_Left_Link, ID_Left_Link);
+                assignTransformations(Helper_Left_Bolt_Inner_Linker, ID_Left_Bolt_Inner_Linker);
+
+                assignTransformations(Helper_Right_Rotator, ID_Right_Rotator);
+                assignTransformations(Helper_Right_Bolt_Second, ID_Right_Bolt_Second);
+                assignTransformations(Helper_Right_Claw_Up, ID_Right_Claw_Up);
+                assignTransformations(Helper_Right_Claw_Down, ID_Right_Claw_Down);
+                assignTransformations(Helper_Right_Link, ID_Right_Link);
+                assignTransformations(Helper_Right_Bolt_Inner_Linker, ID_Right_Bolt_Inner_Linker);
+
+                viewer.impl.sceneUpdated(true);
+                // fetch("https://api.particle.io/v1/devices/35002d000c47353136383631/Claw_Control", {
+                //     method:"POST",
+                //     body: "access_token=25e931a58b9a7595036d30b867517c895245e004&args=" + String(70-value),
+                //     headers: {
+                //         "Content-Type": "application/x-www-form-urlencoded"
+                //     }
+                // }).then(function(res) { console.log(res);})
+            });
+
+
+
+            ServoRotation.onFinishChange(function (value) {
+                setRealClaw(value);
+            });
+
+
+            var target = {
+                claw_movement: 0,
+                // y: 0,
+                // rotate: 0
+            };
+
+
+
+            // initialize timeliner
+            timeliner = new Timeliner(target);
+            timeliner.addLayer('claw_movement');
+
+            timeliner.load({ 
+                "version": "1.5.0",
+                "modified": "Tue Sep 19 2017 11:07:44 GMT-0400 (Eastern Daylight Time)",
+                "title": "Untitled",
+                "ui": {
+                    "currentTime": 0,
+                    "totalTime": 6,
+                    "scrollTime": 0,
+                    "timeScale": 60
+                },
+                "layers": [{
+                    "name": "claw_movement",
+                    "values": [{
+                            "time": 0,
+                            "value": 0,
+                            "_color": "#bc1389",
+                            "tween": "linear"
+                        },
+                        {
+                            "time": 3,
+                            "value": 70,
+                            "_color": "#43f20f",
+                            "tween": "linear"
+                        },
+                        {
+                            "time": 6,
+                            "value": 0,
+                            "_color": "#7ba2e5"
+                        }
+                    ],
+                    "_value": 0,
+                    "_color": "#b1f1d5"
+                }]
+            });
+            timeliner.addLayer('servo_angle');
+
+
+            function animate() {
+                if (!box_control.manual) {
+                    requestAnimationFrame(animate);
+
+                    Pivot_Left_Bolt_Main.rotation.y = target.claw_movement * Math.PI / 180;
+                    Pivot_Left_Bolt_Second.rotation.y = -target.claw_movement * Math.PI / 180;
+                    Pivot_Left_Bolt_Inner.rotation.y = target.claw_movement * Math.PI / 180;
+
+
+                    Pivot_Right_Bolt_Main.rotation.y = -target.claw_movement * Math.PI / 180;
+                    Pivot_Right_Bolt_Second.rotation.y = target.claw_movement * Math.PI / 180;
+                    Pivot_Right_Bolt_Inner.rotation.y = -target.claw_movement * Math.PI / 180;
+
+                    assignTransformations(Helper_Left_Rotator, ID_Left_Rotator);
+                    assignTransformations(Helper_Left_Bolt_Second, ID_Left_Bolt_Second);
+                    assignTransformations(Helper_Left_Claw_Up, ID_Left_Claw_Up);
+                    assignTransformations(Helper_Left_Claw_Down, ID_Left_Claw_Down);
+                    assignTransformations(Helper_Left_Link, ID_Left_Link);
+                    assignTransformations(Helper_Left_Bolt_Inner_Linker, ID_Left_Bolt_Inner_Linker);
+
+                    assignTransformations(Helper_Right_Rotator, ID_Right_Rotator);
+                    assignTransformations(Helper_Right_Bolt_Second, ID_Right_Bolt_Second);
+                    assignTransformations(Helper_Right_Claw_Up, ID_Right_Claw_Up);
+                    assignTransformations(Helper_Right_Claw_Down, ID_Right_Claw_Down);
+                    assignTransformations(Helper_Right_Link, ID_Right_Link);
+                    assignTransformations(Helper_Right_Bolt_Inner_Linker, ID_Right_Bolt_Inner_Linker);
+
+                    if (target.claw_movement%10 == 0)
+                    {
+                        // console.log("GOT " + target.claw_movement);
+                        // setRealClaw(target.claw_movement);
+                    }
+                    viewer.impl.sceneUpdated(true);
+
+                }
+
+            }
+
+            animate();
+
+
+
+
+            function setRealClaw(value) {
+                fetch("https://api.particle.io/v1/devices/37001c000f47353136383631/Claw_Control", {
+                    method: "POST",
+                    body: "access_token=f57995d8b53a44aea778bed6b6babae540dd9dd2&args=" + String(70 -
+                        value),
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    }
+                }).then(function (res) {
+                    console.log(res);
+                })
+            }
+
+
+        }
+
+        /*============================ END OF MY ATTEMPTS =======================*/
+    </script>
+
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,18 @@
+<!-- The Viewer JS -->
+<script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/three.min.js"></script>
+<script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/viewer3D.min.js"></script>
+
+<!-- Developer JS -->
+<script>
+    let viewer;
+    let options = {
+        env: 'AutodeskProduction',
+        accessToken: '<YOUR_APPLICATION_TOKEN>'
+    };
+    let documentId = 'urn:<YOUR_URN_ID>';
+    Autodesk.Viewing.Initializer(options, function onInitialized(){
+        Autodesk.Viewing.Document.load(documentId, onDocumentLoadSuccess, onDocumentLoadFailure);
+    });
+    function onDocumentLoadSuccess(doc) {}
+
+</script>

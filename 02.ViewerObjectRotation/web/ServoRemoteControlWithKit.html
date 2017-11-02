@@ -1,0 +1,379 @@
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=no" />
+    <meta charset="utf-8">
+
+    <!-- The Viewer CSS -->
+    <link rel="stylesheet" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.min.css" type="text/css">
+
+    <!-- The Viewer JS -->
+    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/three.min.js"></script>
+    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.min.js"></script>
+    <script src="./assets/js/controlKit.js"></script>
+    <script src="./assets/js/timeliner.js"></script>
+
+    <!-- Developer JS -->
+    <script src="./assets/js/auxiliary.js"></script>
+
+    <!-- Developer CSS -->
+
+    <link rel="stylesheet" href="./assets/css/controlKit_style.css" type="text/css">
+    <link rel="stylesheet" href="./assets/css/my_style.css" type="text/css">
+
+    <style>
+        #MyControls {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            z-index: 2;
+            width: 30%;
+            height: 30%;
+            /* padding: 1em; */
+            /* font-size: 1em; */
+            /* cursor: pointer; */
+            /* box-shadow: 5px 5px 5px #888888; */
+            /* border: 1px solid gray; */
+            /* border-radius: 5px; */
+        }
+
+        #controlKit {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            z-index: 2;
+            width: 300px;
+            /* padding: 1em; */
+            /* font-size: 1em; */
+            /* cursor: pointer; */
+            /* box-shadow: 5px 5px 5px #888888; */
+            /* border: 1px solid gray; */
+            /* border-radius: 5px; */
+        }
+
+        #controlKit .panel {
+            position: absolute;
+            width: 300px;
+        }
+    </style>
+
+
+
+</head>
+
+<body>
+
+    <!-- The Viewer will be instantiated here -->
+    <div id="MyViewerDiv"></div>
+    <div id="MyControls" class="adsk control">
+        <!-- <p style="text-align: center;">Servo Control</p> -->
+        <div id="controls"></div>
+        <!-- <input type="range">Main Axis</input> -->
+    </div>
+
+
+
+
+
+    <script>
+        var viewerApp;
+        let viewer = null;
+        let tree = null;
+        var options = {
+            env: 'AutodeskProduction',
+            getAccessToken: function (onGetAccessToken) {
+                var token_fetcher = 'https://9irt90dm6j.execute-api.us-east-1.amazonaws.com/prod'
+                var xmlHttp = new XMLHttpRequest();
+                xmlHttp.open("GET", token_fetcher, false);
+                xmlHttp.send(null);
+                var data = JSON.parse(xmlHttp.responseText);
+
+                var accessToken = data["access_token"]
+                var expireTimeSeconds = data["expires_in"];
+                onGetAccessToken(accessToken, expireTimeSeconds);
+            }
+
+        };
+        var documentId = 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6ZXhwZXJpbWVudF9yZXBvLzAxQW5pU2Vydm8uZjNk';
+        Autodesk.Viewing.Initializer(options, function onInitialized() {
+            viewerApp = new Autodesk.Viewing.ViewingApplication('MyViewerDiv');
+            viewerApp.registerViewer(viewerApp.k3D, Autodesk.Viewing.Private.GuiViewer3D);
+            viewerApp.loadDocument(documentId, onDocumentLoadSuccess, onDocumentLoadFailure);
+            viewer = viewerApp.getCurrentViewer();
+        });
+
+        function onDocumentLoadSuccess(doc) {
+
+            // We could still make use of Document.getSubItemsWithProperties()
+            // However, when using a ViewingApplication, we have access to the **bubble** attribute,
+            // which references the root node of a graph that wraps each object from the Manifest JSON.
+            var viewables = viewerApp.bubble.search({ 'type': 'geometry' });
+            if (viewables.length === 0) {
+                console.error('Document contains no viewables.');
+                return;
+            }
+
+            // Choose any of the avialble viewables
+            viewerApp.selectItem(viewables[0].data, onItemLoadSuccess, onItemLoadFail);
+
+
+        }
+
+        function onDocumentLoadFailure(viewerErrorCode) {
+            console.error('onDocumentLoadFailure() - errorCode:' + viewerErrorCode);
+        }
+
+        function onItemLoadSuccess(reported_viewer, item) {
+
+            viewer = reported_viewer;
+            viewer.addEventListener(Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT, setupMyModel);
+        }
+
+        function onItemLoadFail(errorCode) {
+            console.error('onItemLoadFail() - errorCode:' + errorCode);
+        }
+
+
+
+        function setupMyModel() {
+            /*============================ MY ATTEMPTS =======================*/
+
+            // let camera = viewer.getCamera();
+            // if (!camera.isPerspective) {
+            //     camera.toPerspective();
+            // }
+
+            tree = viewer.model.getData().instanceTree;
+
+
+            let ID_ServoTip = findNodeIdbyName('ServoTip');
+            let ID_Fixer = findNodeIdbyName("Fixer");
+            let ID_Handle = findNodeIdbyName('Handle');
+
+
+            let Pivot_ServoTip = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 5), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+            let Position_ServoTip = getFragmentWorldMatrixByNodeId(ID_ServoTip).matrix[0].getPosition().clone();
+            Pivot_ServoTip.position.x = Position_ServoTip.x;
+            Pivot_ServoTip.position.y = Position_ServoTip.y;
+            Pivot_ServoTip.position.z = Position_ServoTip.z;
+            viewer.impl.scene.add(Pivot_ServoTip);
+
+            let Helper_Fixer = new THREE.Mesh();
+            let Position_Fixer = getFragmentWorldMatrixByNodeId(ID_Fixer).matrix[0].getPosition().clone();
+            Helper_Fixer.position.x = - Position_Fixer.x + Math.abs(Position_Fixer.x - Pivot_ServoTip.position.x);
+            Helper_Fixer.position.y = - Position_Fixer.y + Math.abs(Position_Fixer.y - Pivot_ServoTip.position.y);
+            Helper_Fixer.position.z = - Position_Fixer.z + Math.abs(Position_Fixer.z - Pivot_ServoTip.position.z);
+            Pivot_ServoTip.add(Helper_Fixer);
+
+            let Helper_Handle = new THREE.Mesh();
+            let Position_Handle = getFragmentWorldMatrixByNodeId(ID_Fixer).matrix[0].getPosition().clone();
+            Helper_Handle.position.x = - Position_Handle.x + Math.abs(Position_Handle.x - Pivot_ServoTip.position.x);
+            Helper_Handle.position.y = - Position_Handle.y + Math.abs(Position_Handle.y - Pivot_ServoTip.position.y);
+            Helper_Handle.position.z = - Position_Handle.z + Math.abs(Position_Handle.z - Pivot_ServoTip.position.z);
+            Pivot_ServoTip.add(Helper_Handle);
+
+
+            assignTransformations(Helper_Fixer, ID_Fixer);
+            assignTransformations(Helper_Handle, ID_Handle);
+
+
+
+            // let gui = new dat.GUI({ autoPlace: false });
+            // document.getElementById("MyControls").append(gui.domElement);
+
+            // let third_ring_rotation = 0;
+            // let box_control = null;
+
+            // let ServoRotation = null;
+            // let ServoAngle = null;
+            // let reset = null;
+            // let timeliner = null;
+            // let mode_flag = null;
+            // let modes = ["manual", "automatic"];
+
+            // let GiroController = function () {
+            //     this.ServoRotation = 0;
+            //     this.ServoAngle = "";
+            //     this.manual = true;
+            //     // this.mode = modes[this.manual];
+            //     this.mode = modes[this.manual ? 0 : 1];
+
+            //     this.reset = function () {
+            //         ServoRotation.setValue(0);
+            //         ServoAngle.setValue("");
+            //         timeliner.setCurrentTime(0);
+            //         timeliner.pausePlaying();
+            //     }
+
+            //     this.startAnimation = function () {
+            //         this.manual = !this.manual;
+            //         this.mode = modes[this.manual ? 0 : 1];
+            //         mode_flag.setValue(this.mode);
+            //         this.manual ? timeliner.pausePlaying() : timeliner.startPlaying();
+            //         animate();
+            //         this.manual ? ServoRotation.setValue(target.x): null;
+            //         // ServoRotation.setValue(target.x);
+            //     }
+            // }
+
+
+            // box_control = new GiroController();
+            // mode_flag = gui.add(box_control, 'mode');
+            // gui.add(box_control, 'startAnimation');
+            // ServoRotation = gui.add(box_control, 'ServoRotation', 0, 180);
+            // ServoAngle = gui.add(box_control, 'ServoAngle');
+            // reset = gui.add(box_control, 'reset');
+
+
+
+
+
+            // ServoRotation.onChange(function (value) {
+            //     box_control.manual = true;
+            //     Pivot_ServoTip.rotation.y = value * Math.PI / 180;
+            //     assignTransformations(Helper_Fixer, ID_Fixer);
+            //     assignTransformations(Helper_Handle, ID_Handle);
+
+            //     // Pivot_BaseRod.rotation.y = value * Math.PI / 180;
+            //     // assignTransformations(Helper_LowerArmBody, ID_LowerArmBody);
+            //     // assignTransformations(Helper_LowerRodBody, ID_LowerRodBody);
+            //     // assignTransformations(Helper_MiddleArmBody, ID_MiddleArmBody);
+            //     // assignTransformations(Helper_UpperRodBody, ID_UpperRodBody);
+            //     // assignTransformations(Helper_UpperArmBody, ID_UpperArmBody);
+            //     // assignTransformations(Helper_HookBody, ID_HookBody);
+
+            //     viewer.impl.sceneUpdated(true);
+            // });
+
+
+
+
+
+
+            // ServoAngle.onFinishChange(function (value) {
+            //     target.x = value;
+            //     Pivot_ServoTip.rotation.y = value * Math.PI / 180;
+            //     assignTransformations(Helper_Fixer, ID_Fixer);
+            //     assignTransformations(Helper_Handle, ID_Handle);
+
+            //     viewer.impl.sceneUpdated(true);
+
+
+            // });
+
+
+            var target = {
+                x: 0,
+                // y: 0,
+                // rotate: 0
+            };
+
+
+
+
+
+            // initialize timeliner
+            timeliner = new Timeliner(target);
+            timeliner.addLayer('x');
+
+            timeliner.load({
+                "version": "1.5.0",
+                "modified": "Tue Sep 19 2017 11:07:44 GMT-0400 (Eastern Daylight Time)",
+                "title": "Untitled",
+                "ui": {
+                    "currentTime": 0,
+                    "totalTime": 6,
+                    "scrollTime": 0,
+                    "timeScale": 60
+                },
+                "layers": [
+                    {
+                        "name": "x",
+                        "values": [
+                            {
+                                "time": 0,
+                                "value": 0,
+                                "_color": "#bc1389",
+                                "tween": "linear"
+                            },
+                            {
+                                "time": 3,
+                                "value": 180,
+                                "_color": "#43f20f",
+                                "tween": "linear"
+                            },
+                            {
+                                "time": 6,
+                                "value": 0,
+                                "_color": "#7ba2e5"
+                            }
+                        ],
+                        "_value": 0,
+                        "_color": "#b1f1d5"
+                    }
+                ]
+            });
+            // timeliner.addLayer('y');
+            // timeliner.addLayer('rotate');
+
+            // function animate() {
+            //     if (true) {
+            //         requestAnimationFrame(animate);
+            //         Pivot_ServoTip.rotation.y = target.x * Math.PI / 180;
+            //         assignTransformations(Helper_Fixer, ID_Fixer);
+            //         assignTransformations(Helper_Handle, ID_Handle);
+            //         // console.log(target.x);
+            //         viewer.impl.sceneUpdated(true);
+
+            //     }
+
+            // }
+
+            // animate();
+
+
+
+
+            /* ============== GUI using controlKit.js =============================== */
+
+            var obj = {
+                ServoAngle: 0,
+                servo_range: [0, 180],
+                string: 'abc',
+                some_label: "Servo Controls"
+            };
+
+            var controlKit = new ControlKit({
+                parentDomElementId: 'controls',
+                useExternalStyle: true
+            });
+            let panel = controlKit.addPanel({ label: "HZ" });
+            panel.addGroup({ label:  obj.some_label}).addSlider(obj, 'ServoAngle', 'servo_range', {
+                label: "angle",
+                onChange: changeServoAngle
+            });
+
+            let group = panel.getGroups()[0];
+
+            function changeServoAngle(value) {
+                Pivot_ServoTip.rotation.y = obj.ServoAngle * Math.PI / 180;
+                assignTransformations(Helper_Fixer, ID_Fixer);
+                assignTransformations(Helper_Handle, ID_Handle);
+
+                viewer.impl.sceneUpdated(true);
+
+            }
+
+        }
+
+
+
+
+
+            /*============================ END OF MY ATTEMPTS =======================*/
+    </script>
+
+
+</body>
+
+</html>
