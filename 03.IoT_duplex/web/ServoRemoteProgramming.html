@@ -26,7 +26,7 @@
             top: 5px;
             left: 5px;
             z-index: 1;
-            display: none;
+            /* display: none; */
             /* padding: 1em; */
             /* font-size: 1em; */
             /* cursor: pointer; */
@@ -304,43 +304,43 @@
             timeliner.addLayer('rotate');
 
             //load some demo data
-            timeliner.load({
-                "version": "1.5.0",
-                "modified": "Tue Sep 19 2017 11:07:44 GMT-0400 (Eastern Daylight Time)",
-                "title": "Untitled",
-                "ui": {
-                    "currentTime": 0,
-                    "totalTime": 6,
-                    "scrollTime": 0,
-                    "timeScale": 60
-                },
-                "layers": [
-                    {
-                        "name": "rotate",
-                        "values": [
-                            {
-                                "time": 0,
-                                "value": 0,
-                                "_color": "#2ebc3d",
-                                "tween": "linear"
-                            },
-                            {
-                                "time": 3,
-                                "value": 180,
-                                "_color": "#43f20f",
-                                "tween": "linear"
-                            },
-                            {
-                                "time": 6,
-                                "value": 0,
-                                "_color": "#7ba2e5"
-                            }
-                        ],
-                        "_value": 0,
-                        "_color": "#b1f1d5"
-                    }
-                ]
-            });
+            // timeliner.load({
+            //     "version": "1.5.0",
+            //     "modified": "Tue Sep 19 2017 11:07:44 GMT-0400 (Eastern Daylight Time)",
+            //     "title": "Untitled",
+            //     "ui": {
+            //         "currentTime": 0,
+            //         "totalTime": 6,
+            //         "scrollTime": 0,
+            //         "timeScale": 60
+            //     },
+            //     "layers": [
+            //         {
+            //             "name": "rotate",
+            //             "values": [
+            //                 {
+            //                     "time": 0,
+            //                     "value": 0,
+            //                     "_color": "#2ebc3d",
+            //                     "tween": "linear"
+            //                 },
+            //                 {
+            //                     "time": 3,
+            //                     "value": 180,
+            //                     "_color": "#43f20f",
+            //                     "tween": "linear"
+            //                 },
+            //                 {
+            //                     "time": 6,
+            //                     "value": 0,
+            //                     "_color": "#7ba2e5"
+            //                 }
+            //             ],
+            //             "_value": 0,
+            //             "_color": "#b1f1d5"
+            //         }
+            //     ]
+            // });
 
 
             function animate() {

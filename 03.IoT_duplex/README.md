@@ -262,8 +262,104 @@ function getRealServoPosition() {
 //we can set to have it periodically read and change the servo position
 setInterval(function(){
     getRealServoPosition();
-                    }, 500);
+}, 500);
 
 ```
 
-### 5.	Add key animation functionality to 3D model;
+### 5.	Add key animation functionality to 3D model
+
+In general, an animation is a sequence of changing states, which in our case is rotation of the servo tip along with attached handle and the fixing screw. However, to have a smooth animation, we would need to have not only the initial and the final state, but also the intermediate once, distributed on time interval (animation duration).
+
+Even if this might sound complicated, it is not something extraordinary and for sure we can find a tool that can help us with this task. An example of a such tool is the simple [timeliner.js](https://github.com/zz85/timeliner) library:
+
+![](./doc/img/timeliner.png)
+
+both, simple to setup and excellent for our need.
+
+Thus just by having
+```javascript
+<script src="./assets/js/timeliner.js"></script>
+
+<script>
+
+...
+
+let target = {rotate: 0,};
+
+
+// initialize timeliner
+timeliner = new Timeliner(target);
+timeliner.addLayer('rotate');
+
+
+function animate() {
+    
+    requestAnimationFrame(animate);
+    Pivot_ServoTip.rotation.y = target.rotate * Math.PI / 180;
+    assignTransformations(Helper_Fixer, ID_Fixer);
+    assignTransformations(Helper_Handle, ID_Handle);
+    viewer.impl.sceneUpdated(true);
+}
+
+animate();
+
+...
+</script>
+
+```
+
+which gives us "automagically" this nice functionality:
+![](./doc/img/simple_animation.gif)
+
+This becomes even more handy when you find that it can easily export these keys into a very simple JSON file:
+
+```javascript
+{
+"version": "1.5.0",
+"modified": "Wed Nov 08 2017 17:44:16 GMT-0500 (Eastern Standard Time)",
+"title": "Untitled",
+"ui": {
+    "currentTime": 0,
+    "totalTime": 3,
+    "scrollTime": 0,
+    "timeScale": 100
+},
+"layers": [
+    {
+    "name": "rotate",
+    "values": [
+        {
+            "time": 0,
+            "value": 0,
+            "tween": "linear"
+        },
+        {
+            "time": 0.6,
+            "value": 90,
+            "tween": "linear"
+        },
+        {
+            "time": 1.2,
+            "value": 45,
+            "tween": "linear"
+        },
+        {
+            "time": 1.8,
+            "value": 180,
+            "tween": "linear"
+        },
+        {
+            "time": 3,
+            "value": 0
+        }
+    ],
+    "_value": 0
+    }
+]
+}
+
+```
+
+### 6.	Program the real servo by animating the 3D model
+
+

@@ -1,0 +1,43 @@
+{
+	"version": "1.5.0",
+	"modified": "Wed Nov 08 2017 17:44:16 GMT-0500 (Eastern Standard Time)",
+	"title": "Untitled",
+	"ui": {
+		"currentTime": 0,
+		"totalTime": 3,
+		"scrollTime": 0,
+		"timeScale": 100
+	},
+	"layers": [
+		{
+			"name": "rotate",
+			"values": [
+				{
+					"time": 0,
+					"value": 0,
+					"tween": "linear"
+				},
+				{
+					"time": 0.6,
+					"value": 90,
+					"tween": "linear"
+				},
+				{
+					"time": 1.2,
+					"value": 45,
+					"tween": "linear"
+				},
+				{
+					"time": 1.8,
+					"value": 180,
+					"tween": "linear"
+				},
+				{
+					"time": 3,
+					"value": 0
+				}
+			],
+			"_value": 0
+		}
+	]
+}
