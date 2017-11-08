@@ -4,14 +4,15 @@
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=no" />
     <meta charset="utf-8">
 
-    <!-- The Viewer CSS -->
-    <link rel="stylesheet" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.min.css" type="text/css">
 
     <!-- The Viewer JS -->
     <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/three.min.js"></script>
-    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.min.js"></script>
+    <script src="https://developer.api.autodesk.com/derivativeservice/v2/viewers/viewer3D.min.js?v=3.1.2"></script>
     <script src="./assets/js/dat.gui.js"></script>
     <script src="./assets/js/timeliner.js"></script>
+
+    <link rel="stylesheet" href="https://developer.api.autodesk.com/derivativeservice/v2/viewers/style.css?v=3.1.1" type="text/css">
+
 
     <!-- Developer JS -->
     <script src="./assets/js/auxiliary.js"></script>
@@ -237,12 +238,12 @@
 
 
             box_control = new GiroController();
-            mode_flag = gui.add(box_control, 'mode');
-            gui.add(box_control, 'startAnimation');
+            // mode_flag = gui.add(box_control, 'mode');
+            // gui.add(box_control, 'startAnimation');
             ServoRotation = gui.add(box_control, 'ServoRotation', 0, 180);
-            ServoAngle = gui.add(box_control, 'ServoAngle');
-            reset = gui.add(box_control, 'reset');
-            gui.add(box_control, 'Timeliner');
+            // ServoAngle = gui.add(box_control, 'ServoAngle');
+            // reset = gui.add(box_control, 'reset');
+            // gui.add(box_control, 'Timeliner');
 
 
 

@@ -119,8 +119,29 @@
             // }
 
 
+
+
+
+
+
+
+
+
+
             tree = viewer.model.getData().instanceTree;
 
+
+            // var loader = new THREE.TGALoader();
+            var geometry = new THREE.BoxGeometry(200.0, 0.0, 200.0);
+            var texture1 = new THREE.ImageUtils.loadTexture("grid.png");
+            var opacity  = new THREE.ImageUtils.loadTexture("gradient.png");
+
+            var material1 = new THREE.MeshBasicMaterial( { transparent : true,color: 0xffffff, map: texture1, alphaMap:opacity, side:THREE.SingleSide } );
+            let some_geomery = new THREE.Mesh(geometry, material1);
+            some_geomery.position.y = -26.7;
+            some_geomery.position.z = -13;
+            some_geomery.position.x = 26;
+            viewer.impl.scene.add(some_geomery);
 
 
             let ID_Left_Bolt_Main = 62;
